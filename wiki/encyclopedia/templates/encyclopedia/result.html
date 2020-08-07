@@ -1,0 +1,14 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Serach Results for "{{query}}"
+{% endblock %}
+
+{% block body %}
+    <ul>
+        {% for list in listing %}
+            <li> <a href="{% url 'entry' list %}">{{ list }}</a></li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
