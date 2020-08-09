@@ -3,7 +3,7 @@ from django.http import HttpResponse, Http404
 from django.urls import reverse 
 import re
 from . import util
-
+from random import seed, randint
 
 
 def index(request):
@@ -95,6 +95,19 @@ def edit(request, title):
 			util.save_entry(title, edited_entry)
 
 			return HttpResponseRedirect(reverse('entry', args=(title,)))
+
+def random(request):
+	#draw list of current entries
+	entries = util.list_entries()
+	#generate random number
+	seed(1)
+	randnum = randint(0,len(entries))
+	#select entry
+	entry_title = entries[randnum]
+
+	return HttpResponseRedirect(reverse('entry', args=(entry_title,)))
+
+
 
 
 
