@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block body %}
-	<h2> {{entry_title}} </h2>
 
-    <textarea> 
+    <div>
     	{{entry |safe}}
-    </textarea>
+    </div>
+    
 
     <div>
     	<a href="{% url 'edit' entry_title %}"> Edit Page </a>

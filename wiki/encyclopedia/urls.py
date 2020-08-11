@@ -10,5 +10,6 @@ urlpatterns = [
     path(r'^result/<str:query>/$', views.result, name="result"),
     path(r'^create/$', views.create, name="create"),
     path(r'^edit/<str:title>/$', views.edit, name="edit"),
+    path(r'^error/<str:message>/$', views.error, name="error"),
 
 ]

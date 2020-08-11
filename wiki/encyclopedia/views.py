@@ -4,6 +4,7 @@ from django.urls import reverse
 import re
 from . import util
 from random import seed, randint
+import markdown
 
 
 def index(request):
@@ -14,14 +15,15 @@ def index(request):
 		return HttpResponseRedirect(reverse('result', args=(query,)))
 	#otherwise, a GET call will load the index page
 	else:
-	    return render(request, "encyclopedia/index.html", {
-	        "entries": util.list_entries()
-	    })
+	    return render(request, "encyclopedia/index.html", {"entries": util.list_entries() })
 
 
 
 
 def entry(request, title):
+
+	if title == None:
+		raise Http404("please enter a title")
 
 	entry = util.get_entry(title)
 	entry_title = title
@@ -32,9 +34,11 @@ def entry(request, title):
 			if len(re.findall(f"(?:{(entry_title.lower())})+", entry.lower())) >=1:
 				listing.append(entry)
 			if len(listing) <= 0:
-				raise Http404(f"There are no related searches for {entry_title}")
+				message = f"There are no related searches for {entry_title}"
+				return HttpResponseRedirect(reverse('error', args=(message,)))
 		return HttpResponseRedirect(reverse('result', args=(entry_title,)))
 
+	entry = markdown.markdown(entry)
 	return render(request, "encyclopedia/entry.html", {"entry": entry, "entry_title": entry_title})
 
 
@@ -50,7 +54,8 @@ def result(request, query):
 				listing.append(entry)
 		#send error message if there are no related searches
 		if len(listing) <= 0:
-			raise Http404(f"There are no related searches for {query}")
+			message = f"There are no related searches for {query}"
+			return HttpResponseRedirect(reverse('error', args=(message,)))
 		#otherwise render the results page
 		return render(request, "encyclopedia/result.html", {"listing":listing, "query":query})
 	else:
@@ -68,17 +73,21 @@ def create(request):
 
 		#check if there is a title and entry
 
-		if new_title == None or new_entry == None:
-			raise Http404(f"Please fill in the title and entry before submission!")
+		if new_title == "" or new_entry == "":
+			message = "Please fill in the title and entry before submission!"
+			return HttpResponseRedirect(reverse('error', args=(message,)))
+			#raise Http404(f"Please fill in the title and entry before submission!")
 
 		#check if post title already exists
 		if util.get_entry(new_title) == True:
-			raise Http404(f"{new_title} already exists!")
+			message = f"{new_title} already exists!"
+			return HttpResponseRedirect(reverse('error', args=(message,)))
+			#raise Http404(f"{new_title} already exists!")
 
 		#save entry
 		util.save_entry(new_title, new_entry)
 
-		return HttpResponseRedirect(reverse('entry', args=(new_title)))
+		return HttpResponseRedirect(reverse('entry', args=(new_title,)))
 
 def edit(request, title):
 		#If command is GET to access the edit page
@@ -88,7 +97,6 @@ def edit(request, title):
 			#return HttpResponse(f"hey")
 			return render(request, "encyclopedia/edit.html", {"entry":entry, "entry_title":entry_title})
 
-			#return render(request, "encyclopedia/edit.html", {"entrys": entrys, "entrys_title": entrys_title})
 		#Else if POST for editing entry
 		else:
 			edited_entry = str(request.POST['edited'])
@@ -100,14 +108,15 @@ def random(request):
 	#draw list of current entries
 	entries = util.list_entries()
 	#generate random number
-	seed(1)
-	randnum = randint(0,len(entries))
+
+	randnum = randint(0,len(entries)-1)
 	#select entry
 	entry_title = entries[randnum]
-
 	return HttpResponseRedirect(reverse('entry', args=(entry_title,)))
 
-
+def error(request, message):
+	#return error page
+	return render(request, "encyclopedia/error.html", {"message": message})
 
 
 
